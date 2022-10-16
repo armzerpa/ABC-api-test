@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"log"
-	"strconv"
 
 	"github.com/armzerpa/ABC-api-test/cmd/api/model"
 )
@@ -11,8 +10,10 @@ import (
 type Repo interface {
 	GetAll() []model.User
 	GetById(id string) *model.User
+	GetByEmail(email string) *model.User
 	DeleteById(id string) bool
 	Create(book model.User) *model.User
+	Update(book model.User) bool
 }
 
 type UserRepo struct {
@@ -24,7 +25,7 @@ func NewRepository(db *sql.DB) Repo {
 }
 
 func (b UserRepo) GetAll() []model.User {
-	rows, err := b.DbConnection.Query("SELECT id, fullname, email, phone, date_created, date_updated FROM user")
+	rows, err := b.DbConnection.Query("SELECT id, fullname, age, email, phone, date_created, date_updated FROM user")
 	if err != nil {
 		log.Println("Error in the query to the database")
 		return nil
@@ -36,7 +37,7 @@ func (b UserRepo) GetAll() []model.User {
 	for rows.Next() {
 		var user model.User
 
-		err := rows.Scan(&user.ID, &user.FullName, &user.Email, &user.Phone, &user.DateCreated, &user.DateUpdated)
+		err := rows.Scan(&user.ID, &user.FullName, &user.Age, &user.Email, &user.Phone, &user.DateCreated, &user.DateUpdated)
 		if err != nil {
 			log.Println("Some error scanning data from the database")
 			return nil
@@ -54,7 +55,18 @@ func (b UserRepo) GetAll() []model.User {
 
 func (b UserRepo) GetById(id string) *model.User {
 	var user model.User
-	err := b.DbConnection.QueryRow("SELECT id, fullname, email, phone, date_created, date_updated FROM user WHERE ID = ?", id).Scan(&user.ID, &user.FullName, &user.Email, &user.Phone, &user.DateCreated, &user.DateUpdated)
+	err := b.DbConnection.QueryRow("SELECT id, fullname, age, email, phone, date_created, date_updated FROM user WHERE id = ?", id).Scan(&user.ID, &user.FullName, &user.Age, &user.Email, &user.Phone, &user.DateCreated, &user.DateUpdated)
+
+	if err != nil {
+		log.Println("Error in SELECT to the database ", err)
+		return nil
+	}
+	return &user
+}
+
+func (b UserRepo) GetByEmail(email string) *model.User {
+	var user model.User
+	err := b.DbConnection.QueryRow("SELECT id, fullname, age, email, phone, date_created, date_updated FROM user WHERE email = ?", email).Scan(&user.ID, &user.FullName, &user.Age, &user.Email, &user.Phone, &user.DateCreated, &user.DateUpdated)
 
 	if err != nil {
 		log.Println("Error in SELECT to the database ", err)
@@ -74,14 +86,24 @@ func (b UserRepo) DeleteById(id string) bool {
 }
 
 func (b UserRepo) Create(user model.User) *model.User {
-	sql := "INSERT INTO user (fullname, email, phone, date_created, date_updated) VALUES (?,?,?,?,?)"
-	res, err := b.DbConnection.Exec(sql, user.FullName, user.Email, user.Phone, user.DateCreated, *user.DateUpdated)
+	sql := "INSERT INTO user (fullname, age, email, phone, date_created, date_updated) VALUES (?,?,?,?,?,?)"
+	res, err := b.DbConnection.Exec(sql, user.FullName, user.Age, user.Email, user.Phone, user.DateCreated, user.DateCreated)
 	lastId, err := res.LastInsertId()
-	user.ID = strconv.FormatInt(int64(lastId), 10)
+	user.ID = int(lastId)
 
 	if err != nil {
 		log.Println("Error in INSERT to the database ", err)
 		return nil
 	}
 	return &user
+}
+
+func (b UserRepo) Update(user model.User) bool {
+	sql := "UPDATE user SET fullname=?, age=?, phone=?, date_updated=? WHERE id=?;"
+	_, err := b.DbConnection.Exec(sql, user.FullName, user.Age, user.Phone, *user.DateUpdated, user.ID)
+	if err != nil {
+		log.Println("Error in UPDATE to the database ", err)
+		return false
+	}
+	return true
 }
