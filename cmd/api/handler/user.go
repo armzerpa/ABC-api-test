@@ -9,6 +9,7 @@ import (
 	"github.com/armzerpa/ABC-api-test/cmd/api/model"
 	"github.com/armzerpa/ABC-api-test/cmd/api/repository"
 	"github.com/go-playground/validator"
+	"github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,6 +19,8 @@ func NewUserHandler(db *sql.DB) *HandlerUser {
 		userRepository: repository.NewRepository(db),
 	}
 }
+
+var log = logrus.New()
 
 type HandlerUser struct {
 	userRepository repository.Repo
@@ -60,8 +63,9 @@ func (h *HandlerUser) DeleteUserById(c *gin.Context) {
 
 func (h *HandlerUser) CreateUser(c *gin.Context) {
 	var userToInsert model.User
-	error := c.BindJSON(&userToInsert)
-	if error != nil {
+	err := c.BindJSON(&userToInsert)
+	if err != nil {
+		log.WithFields(logrus.Fields{}).Error("error binding json ", err)
 		c.IndentedJSON(http.StatusBadRequest, model.Message{Message: "invalid body", Status: "bad_request"})
 		return
 	}
@@ -86,8 +90,9 @@ func (h *HandlerUser) UpdateUser(c *gin.Context) {
 	}
 
 	var userToUpdate model.User
-	error := c.BindJSON(&userToUpdate)
-	if error != nil {
+	err := c.BindJSON(&userToUpdate)
+	if err != nil {
+		log.WithFields(logrus.Fields{}).Error("error binding json ", err)
 		c.IndentedJSON(http.StatusBadRequest, model.Message{Message: "invalid body", Status: "bad_request"})
 		return
 	}

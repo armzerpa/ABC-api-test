@@ -2,10 +2,12 @@ package repository
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/armzerpa/ABC-api-test/cmd/api/model"
+	"github.com/sirupsen/logrus"
 )
+
+var log = logrus.New()
 
 type File interface {
 	GetAll(userId string) []model.File
@@ -24,7 +26,7 @@ func NewFileRepository(db *sql.DB) File {
 func (b FileRepo) GetAll(userId string) []model.File {
 	rows, err := b.DbConnection.Query("SELECT id, name, path FROM file WHERE userid = ?", userId)
 	if err != nil {
-		log.Println("Error in the query to the database")
+		log.WithFields(logrus.Fields{}).Error("Error in the query to the database ", err)
 		return nil
 	}
 	defer rows.Close()
@@ -36,14 +38,14 @@ func (b FileRepo) GetAll(userId string) []model.File {
 
 		err := rows.Scan(&File.ID, &File.Name, &File.Path)
 		if err != nil {
-			log.Println("Some error scanning data from the database")
+			log.WithFields(logrus.Fields{}).Error("Some error scanning data from the database ", err)
 			return nil
 		}
 
 		Files = append(Files, File)
 	}
 	if err = rows.Err(); err != nil {
-		log.Println("Some error selecting files from the database")
+		log.WithFields(logrus.Fields{}).Error("Some error selecting files from the database ", err)
 		return nil
 	}
 
@@ -55,7 +57,7 @@ func (b FileRepo) DeleteAll(userid string) bool {
 	_, err := b.DbConnection.Exec(sql, userid)
 
 	if err != nil {
-		log.Println("Error in the DELETE to the database ", err)
+		log.WithFields(logrus.Fields{}).Error("Error in the DELETE to the database  ", err)
 		return false
 	}
 	return true
@@ -68,7 +70,7 @@ func (b FileRepo) Create(file model.File, userId string) *model.File {
 	file.ID = int(lastId)
 
 	if err != nil {
-		log.Println("Error in INSERT file to the database ", err)
+		log.WithFields(logrus.Fields{}).Error("Error in INSERT file to the database ", err)
 		return nil
 	}
 	return &file

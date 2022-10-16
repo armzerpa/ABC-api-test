@@ -2,11 +2,11 @@ package handler
 
 import (
 	"database/sql"
-	"log"
 	"net/http"
 
 	"github.com/armzerpa/ABC-api-test/cmd/api/model"
 	"github.com/armzerpa/ABC-api-test/cmd/api/repository"
+	"github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
 )
@@ -64,9 +64,9 @@ func (h *HandlerFile) CreateFile(c *gin.Context) {
 	}
 
 	var fileToInsert model.File
-	error := c.BindJSON(&fileToInsert)
-	if error != nil {
-		log.Println(error)
+	err := c.BindJSON(&fileToInsert)
+	if err != nil {
+		log.WithFields(logrus.Fields{}).Error("error binding json ", err)
 		c.IndentedJSON(http.StatusBadRequest, model.Message{Message: "invalid body file", Status: "bad_request"})
 		return
 	}
