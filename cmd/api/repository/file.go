@@ -22,7 +22,7 @@ func NewFileRepository(db *sql.DB) File {
 }
 
 func (b FileRepo) GetAll(userId string) []model.File {
-	rows, err := b.DbConnection.Query("SELECT id, fullname, age, email, phone, date_created, date_updated FROM file")
+	rows, err := b.DbConnection.Query("SELECT id, name, path FROM file WHERE userid = ?", userId)
 	if err != nil {
 		log.Println("Error in the query to the database")
 		return nil
@@ -51,7 +51,8 @@ func (b FileRepo) GetAll(userId string) []model.File {
 }
 
 func (b FileRepo) DeleteAll(userid string) bool {
-	err := b.DbConnection.QueryRow("DELETE FROM file WHERE userid = ?", userid)
+	sql := "DELETE FROM file WHERE userid = ?"
+	_, err := b.DbConnection.Exec(sql, userid)
 
 	if err != nil {
 		log.Println("Error in the DELETE to the database ", err)

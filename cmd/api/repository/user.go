@@ -76,7 +76,8 @@ func (b UserRepo) GetByEmail(email string) *model.User {
 }
 
 func (b UserRepo) DeleteById(id string) bool {
-	err := b.DbConnection.QueryRow("DELETE FROM user WHERE ID = ?", id)
+	sql := "DELETE FROM user WHERE ID = ?"
+	_, err := b.DbConnection.Exec(sql, id)
 
 	if err != nil {
 		log.Println("Error in the DELETE to the database ", err)

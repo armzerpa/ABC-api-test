@@ -2,6 +2,7 @@ package handler
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 
 	"github.com/armzerpa/ABC-api-test/cmd/api/model"
@@ -48,7 +49,7 @@ func (h *HandlerFile) DeleteByUserId(c *gin.Context) {
 
 	result := h.fileRepository.DeleteAll(id)
 	if result {
-		c.IndentedJSON(http.StatusOK, model.Message{Message: "files deleted successfully", Status: "user remove file, id: " + id})
+		c.IndentedJSON(http.StatusOK, model.Message{Message: "files deleted successfully", Status: "remove files from user id: " + id})
 	} else {
 		c.IndentedJSON(http.StatusInternalServerError, model.Message{Message: "error deleting files", Status: "internal_error"})
 	}
@@ -65,6 +66,7 @@ func (h *HandlerFile) CreateFile(c *gin.Context) {
 	var fileToInsert model.File
 	error := c.BindJSON(&fileToInsert)
 	if error != nil {
+		log.Println(error)
 		c.IndentedJSON(http.StatusBadRequest, model.Message{Message: "invalid body file", Status: "bad_request"})
 		return
 	}

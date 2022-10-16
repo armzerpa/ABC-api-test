@@ -101,7 +101,7 @@ func (h *HandlerUser) UpdateUser(c *gin.Context) {
 	userToUpdate.DateUpdated = &t
 	result := h.userRepository.Update(userToUpdate)
 	if result {
-		c.IndentedJSON(http.StatusOK, user)
+		c.IndentedJSON(http.StatusOK, userToUpdate)
 	} else {
 		c.IndentedJSON(http.StatusInternalServerError, model.Message{Message: "error updating user", Status: "internal_error"})
 	}
